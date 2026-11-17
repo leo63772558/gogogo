@@ -2,6 +2,13 @@ name: Build Gandufu GoGoGo APK
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/gandufu-gogogo-build.yml'
+      - 'app/src/main/res/values/strings.xml'
+      - 'app/src/main/res/layout/activity_mini_program_test.xml'
+      - 'app/src/main/java/com/zcshou/gogogo/MiniProgramTestActivity.java'
 
 permissions:
   contents: read
