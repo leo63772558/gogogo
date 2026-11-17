@@ -12,6 +12,16 @@
         android:padding="16dp">
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:padding="10dp"
+            android:background="#E0F2F1"
+            android:text="仅检测 Android 系统定位接口，并非微信小程序 wx.getLocation()。系统显示 Mock 成功，不代表微信已使用该坐标。"
+            android:textColor="#004D40"
+            android:textSize="13sp" />
+
+        <TextView
             android:id="@+id/tv_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
