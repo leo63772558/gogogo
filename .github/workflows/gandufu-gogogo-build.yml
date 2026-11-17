@@ -1,0 +1,75 @@
+name: Build Gandufu GoGoGo APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required SDK components
+        run: |
+          sdkmanager --install 'platforms;android-32' 'build-tools;36.0.0' 'ndk;26.2.11394342'
+
+      - name: Print bundled test signing SHA1
+        shell: bash
+        run: |
+          keytool -list -v -keystore keystore/GoGoGo.jks \
+            -storepass GoGoGo -alias GoGoKey | grep -E 'SHA1:|SHA256:'
+          echo 'Use application package: com.zcshou.gogogo.gandufutest'
+
+      - name: Configure test build
+        shell: bash
+        env:
+          TENCENT_MAP_KEY: ${{ secrets.TENCENT_MAP_KEY }}
+        run: |
+          if [ -z "$TENCENT_MAP_KEY" ]; then
+            echo 'TENCENT_MAP_KEY is missing. Register an Android Tencent Map SDK key with the SHA1 above and package com.zcshou.gogogo.gandufutest, add it to Actions secrets, then rerun.'
+            exit 1
+          fi
+          printf 'TENCENT_MAP_KEY=%s\nMAPS_API_KEY=\n' "$TENCENT_MAP_KEY" > local.properties
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/build.gradle')
+          src = p.read_text(encoding='utf-8')
+          # Project uses Windows-only keystore path; fix for Ubuntu CI.
+          original = r'..\\keystore\\GoGoGo.jks'
+          assert original in src, 'Unexpected signing path: check app/build.gradle manually'
+          src = src.replace(original, '../keystore/GoGoGo.jks')
+          # Keep original GoGoGo installed by giving this test build a separate app id.
+          original_debug = 'debug {\n            signingConfig = signingConfigs.debug'
+          assert original_debug in src, 'Unexpected buildTypes debug block: inspect manually'
+          src = src.replace(original_debug,
+                'debug {\n            applicationIdSuffix ".gandufutest"\n            signingConfig = signingConfigs.debug', 1)
+          p.write_text(src, encoding='utf-8')
+          print('Test package: com.zcshou.gogogo.gandufutest')
+          PY
+
+      - name: Build test APK
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gandufu-gogogo-test-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
