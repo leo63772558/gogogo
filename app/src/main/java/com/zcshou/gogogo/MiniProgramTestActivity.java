@@ -224,44 +224,9 @@ public class MiniProgramTestActivity extends BaseActivity {
     }
 
     private void queryTencentAddress(double gcjLat, double gcjLng) {
-        // A WebService key in signature-validation mode requires a backend-signed request.
-        // Never embed its Secret Key in an Android APK: it could be extracted.
-        tvAddressTencent.setText("腾讯: 当前 Key 启用了 WebService 签名校验，需服务端代理（不影响 GPS/Mock）");
-        return;
-        String url = "https://apis.map.qq.com/ws/geocoder/v1/?location=" + gcjLat + "," + gcjLng
-                + "&key=" + DEFAULT_TENCENT_KEY + "&get_poi=0";
-
-        Request request = new Request.Builder().url(url).get().build();
-        mOkHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                runOnUiThread(() -> tvAddressTencent.setText("腾讯: 请求失败"));
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                ResponseBody body = response.body();
-                if (body != null) {
-                    try {
-                        JSONObject json = new JSONObject(body.string());
-                        int status = json.getInt("status");
-                        if (status == 0) {
-                            JSONObject result = json.getJSONObject("result");
-                            String address = result.getString("address");
-                            String recommend = result.optJSONObject("formatted_addresses") != null
-                                    ? result.getJSONObject("formatted_addresses").optString("recommend", "")
-                                    : "";
-                            final String display = recommend.isEmpty() ? address : recommend;
-                            runOnUiThread(() -> tvAddressTencent.setText("腾讯: " + display));
-                        } else {
-                            String msg = json.optString("message", "未知错误");
-                            runOnUiThread(() -> tvAddressTencent.setText("腾讯: " + msg));
-                        }
-                    } catch (JSONException e) {
-                        runOnUiThread(() -> tvAddressTencent.setText("腾讯: 解析失败"));
-                    }
-                }
-            }
-        });
+        // WebService signature validation requires a backend-signed request.
+        // Do not embed a Tencent Secret Key in a distributed Android APK.
+        tvAddressTencent.setText("腾讯: 需要服务端签名代理；不影响 GPS/Mock 测试");
     }
+
 }
