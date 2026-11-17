@@ -54,7 +54,7 @@ jobs:
             echo 'TENCENT_MAP_KEY is missing. Register an Android Tencent Map SDK key with the SHA1 above and package com.zcshou.gogogo.gandufutest, add it to Actions secrets, then rerun.'
             exit 1
           fi
-          printf 'TENCENT_MAP_KEY=%s\nMAPS_API_KEY=""\n' "$TENCENT_MAP_KEY" > local.properties
+          printf 'TENCENT_MAP_KEY=%s\nMAPS_API_KEY="DISABLED_FOR_TEST_BUILD"\n' "$TENCENT_MAP_KEY" > local.properties
           python3 - <<'PY'
           from pathlib import Path
           p = Path('app/build.gradle')
