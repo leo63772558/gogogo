@@ -187,6 +187,10 @@ public class MiniProgramTestActivity extends BaseActivity {
     }
 
     private void queryBaiduAddress(double bdLat, double bdLng) {
+        if ("DISABLED_FOR_TEST_BUILD".equals(DEFAULT_BAIDU_AK) || DEFAULT_BAIDU_AK.isEmpty()) {
+            tvAddressBaidu.setText("百度: 未配置 API Key（不影响定位测试）");
+            return;
+        }
         String url = "https://api.map.baidu.com/reverse_geocoding/v3/?ak=" + DEFAULT_BAIDU_AK
                 + "&output=json&coordtype=bd09ll&location=" + bdLat + "," + bdLng;
 
@@ -220,6 +224,10 @@ public class MiniProgramTestActivity extends BaseActivity {
     }
 
     private void queryTencentAddress(double gcjLat, double gcjLng) {
+        // A WebService key in signature-validation mode requires a backend-signed request.
+        // Never embed its Secret Key in an Android APK: it could be extracted.
+        tvAddressTencent.setText("腾讯: 当前 Key 启用了 WebService 签名校验，需服务端代理（不影响 GPS/Mock）");
+        return;
         String url = "https://apis.map.qq.com/ws/geocoder/v1/?location=" + gcjLat + "," + gcjLng
                 + "&key=" + DEFAULT_TENCENT_KEY + "&get_poi=0";
 
