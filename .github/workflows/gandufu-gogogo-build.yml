@@ -20,11 +20,19 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      # GitHub-hosted Ubuntu runners already include Android command-line tools.
-      - name: Use preinstalled Android SDK
+      # Find sdkmanager within the preinstalled SDK instead of assuming it is on PATH.
+      - name: Locate Android SDK command-line tools
+        shell: bash
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          sdkmanager --version
+          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "::error::sdkmanager not found under $ANDROID_HOME/cmdline-tools"
+            exit 1
+          fi
+          echo "Found $SDKMANAGER"
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
+          "$SDKMANAGER" --version
 
       - name: Install required SDK components
         run: |
