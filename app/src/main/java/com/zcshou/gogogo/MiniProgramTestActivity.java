@@ -185,7 +185,7 @@ public class MiniProgramTestActivity extends BaseActivity {
             } catch (RuntimeException ex) {
                 report.append("不可读取: ").append(ex.getClass().getSimpleName());
             }
-            report.append("\\n");
+            report.append('\n');
         }
         tvProviderDiagnostics.setText(report.toString().trim());
     }
