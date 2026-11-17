@@ -49,6 +49,7 @@ public class MiniProgramTestActivity extends BaseActivity {
     private TextView tvAccuracy;
     private TextView tvTime;
     private TextView tvMockStatus;
+    private TextView tvProviderDiagnostics;
     private Button btnRefresh;
 
     private LocationManager mLocManager;
@@ -69,6 +70,7 @@ public class MiniProgramTestActivity extends BaseActivity {
         tvAccuracy = findViewById(R.id.tv_accuracy);
         tvTime = findViewById(R.id.tv_time);
         tvMockStatus = findViewById(R.id.tv_mock_status);
+        tvProviderDiagnostics = findViewById(R.id.tv_provider_diagnostics);
         btnRefresh = findViewById(R.id.btn_refresh);
 
         mLocManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -102,6 +104,7 @@ public class MiniProgramTestActivity extends BaseActivity {
     }
 
     private void refreshLocation() {
+        refreshProviderDiagnostics();
         tvStatus.setText("正在获取定位...");
         tvAddressBaidu.setText("百度: 解析中...");
         tvAddressTencent.setText("腾讯: 解析中...");
@@ -145,6 +148,46 @@ public class MiniProgramTestActivity extends BaseActivity {
         }
 
         displayLocation(loc);
+    }
+
+    // Read-only diagnostic of Android's last known positions. This does not alter
+    // any location providers or attempt to intercept another application's API.
+    private void refreshProviderDiagnostics() {
+        if (tvProviderDiagnostics == null || mLocManager == null) return;
+        StringBuilder report = new StringBuilder();
+        String[] providers = new String[] {
+                LocationManager.GPS_PROVIDER,
+                LocationManager.NETWORK_PROVIDER,
+                "fused"
+        };
+        long now = System.currentTimeMillis();
+        for (String provider : providers) {
+            report.append(provider).append(": ");
+            try {
+                if (!mLocManager.getAllProviders().contains(provider)) {
+                    report.append("设备未提供");
+                } else {
+                    Location sample = mLocManager.getLastKnownLocation(provider);
+                    if (sample == null) {
+                        report.append("暂无缓存位置");
+                    } else {
+                        boolean mock = android.os.Build.VERSION.SDK_INT >= 31
+                                ? sample.isMock() : sample.isFromMockProvider();
+                        long ageSeconds = Math.max(0L, (now - sample.getTime()) / 1000L);
+                        report.append(String.format(Locale.US,
+                                "%.6f, %.6f | 精度 %.1fm | %s | 缓存 %ds",
+                                sample.getLatitude(), sample.getLongitude(),
+                                sample.getAccuracy(), mock ? "Mock" : "非Mock", ageSeconds));
+                    }
+                }
+            } catch (SecurityException ex) {
+                report.append("定位权限不足");
+            } catch (RuntimeException ex) {
+                report.append("不可读取: ").append(ex.getClass().getSimpleName());
+            }
+            report.append("\\n");
+        }
+        tvProviderDiagnostics.setText(report.toString().trim());
     }
 
     private void displayLocation(Location loc) {
