@@ -2,14 +2,14 @@
   <!-- 标题区域 -->
   <view class="header">
     <text class="title">影梭定位测试</text>
-    <text class="subtitle">模拟微信小程序获取定位</text>
+    <text class="subtitle">真机检测 wx.getLocation() 的原始返回数据</text>
   </view>
 
   <!-- 状态栏 -->
   <view class="status-bar">
     <view class="status-item">
-      <text class="status-label">Mock状态</text>
-      <text class="status-value {{mockInfo.isMock ? 'mock' : 'normal'}}">{{mockInfo.message}}</text>
+      <text class="status-label">Mock判断</text>
+      <text class="status-value">{{mockInfo.message}}</text>
     </view>
     <view class="status-item">
       <text class="status-label">更新时间</text>
@@ -25,8 +25,8 @@
   <!-- WGS84 坐标卡片 -->
   <view class="card wgs84-card">
     <view class="card-header">
-      <text class="card-title">WGS84 (GPS原始坐标)</text>
-      <text class="card-subtitle">影梭注入的坐标</text>
+      <text class="card-title">微信返回的 WGS84 坐标</text>
+      <text class="card-subtitle">来自 wx.getLocation({type: 'wgs84'})，不等于 Android GPS 原始数据</text>
     </view>
     <view class="card-body">
       <view class="coord-row">
@@ -58,8 +58,8 @@
   <!-- GCJ02 坐标卡片 -->
   <view class="card gcj02-card">
     <view class="card-header">
-      <text class="card-title">GCJ02 (火星坐标)</text>
-      <text class="card-subtitle">微信/腾讯/高德使用的坐标系</text>
+      <text class="card-title">微信返回的 GCJ02 坐标</text>
+      <text class="card-subtitle">来自另一次 wx.getLocation({type: 'gcj02'}) 请求</text>
     </view>
     <view class="card-body">
       <view class="coord-row">
@@ -79,8 +79,8 @@
   <!-- 地址信息卡片 -->
   <view class="card address-card">
     <view class="card-header">
-      <text class="card-title">地址解析</text>
-      <text class="card-subtitle">腾讯地图反向地理编码</text>
+      <text class="card-title">地址解析状态</text>
+      <text class="card-subtitle">测试页未配置地理编码 API</text>
     </view>
     <view class="card-body">
       <view class="address-row">
@@ -100,11 +100,11 @@
   <!-- 说明 -->
   <view class="tips">
     <text class="tips-title">使用说明</text>
-    <text class="tips-item">1. 影梭启动模拟位置，关闭WiFi</text>
-    <text class="tips-item">2. 点击"刷新定位"获取当前坐标</text>
-    <text class="tips-item">3. WGS84 应与影梭设置值一致</text>
-    <text class="tips-item">4. GCJ02 是微信实际使用的坐标</text>
-    <text class="tips-item">5. 如不一致，说明腾讯SDK用了其他定位源</text>
+    <text class="tips-item">1. 在本测试小程序中分别请求 WGS84、GCJ02</text>
+    <text class="tips-item">2. 点击“刷新定位”，真机 Console 查看完整对象</text>
+    <text class="tips-item">3. 两次请求可能有不同时间、精度和定位源</text>
+    <text class="tips-item">4. 对比坐标时请先核对坐标系和取样时间</text>
+    <text class="tips-item">5. 本页无法证明微信内部采用何种 SDK，也无法可靠识别 Mock</text>
   </view>
 
   <!-- 开发者信息 -->
