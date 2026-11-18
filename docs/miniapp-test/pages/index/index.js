@@ -15,8 +15,9 @@ Page({
   // 获取定位（核心方法）
   getLocation() {
     const that = this;
-    this.setData({ loading: true });
+    this.setData({ loading: true, lastUpdate: '正在请求定位...' });
 
+    // Two independent WeChat API calls. These results need not share a provider or timestamp.
     // 先获取 WGS84
     wx.getLocation({
       type: 'wgs84',
@@ -26,6 +27,7 @@ Page({
         console.log('=== WGS84 原始坐标 ===');
         console.log('纬度:', res.latitude);
         console.log('经度:', res.longitude);
+        console.log('定位源:', res.provider || '未提供');
         console.log('精度:', res.accuracy, '米');
         console.log('速度:', res.speed, 'm/s');
         console.log('高度:', res.altitude);
@@ -40,7 +42,9 @@ Page({
           altitude: res.altitude != null ? res.altitude.toFixed(2) + ' 米' : '未知'
         };
 
-        // wx.getLocation does not reliably expose an Android mock-location flag.\n        // Do not infer Mock status from reported accuracy.\n        console.log("微信 WGS84 完整返回值:", JSON.stringify(res));
+        // wx.getLocation does not expose a reliable Android Mock status.
+        // Accuracy alone cannot establish whether a location is simulated.
+        console.log("微信 WGS84 完整返回值:", JSON.stringify(res));
 
         that.setData({
           wgs84: wgs84Data,
@@ -50,13 +54,14 @@ Page({
           }
         });
 
-        // 再获取 GCJ02
+        // 另一次请求 GCJ02，非对上述 WGS84 结果的必然转换
         that.getGCJ02(res.latitude, res.longitude);
       },
       fail(err) {
-        console.error('WGS84定位失败:', err);
+        console.error('WGS84定位失败:', JSON.stringify(err));
         that.setData({
           loading: false,
+          lastUpdate: new Date().toLocaleString('zh-CN'),
           mockInfo: { isMock: false, message: '定位失败: ' + err.errMsg }
         });
         wx.showToast({ title: '定位失败', icon: 'none' });
@@ -72,6 +77,7 @@ Page({
       success(res) {
         console.log('=== GCJ02 坐标 ===');
         console.log('微信 GCJ02 完整返回值:', JSON.stringify(res));
+        console.log('定位源:', res.provider || '未提供', '水平精度:', res.horizontalAccuracy ?? res.accuracy ?? '未提供');
         console.log('纬度:', res.latitude);
         console.log('经度:', res.longitude);
 
@@ -91,13 +97,13 @@ Page({
         });
       },
       fail(err) {
-        console.error('GCJ02定位失败:', err);
-        that.setData({ loading: false });
+        console.error('GCJ02定位失败:', JSON.stringify(err));
+        that.setData({ loading: false, lastUpdate: new Date().toLocaleString('zh-CN'), gcj02: { lat: '获取失败', lng: err.errMsg || '未知错误' } });
       }
     });
   },
 
-  // 获取地址描述
+  // Optional manual picker; not automatic geocoding.
   getAddress(lat, lng) {
     const that = this;
 
