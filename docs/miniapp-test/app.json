@@ -4,5 +4,14 @@
   ],
   "window": {
     "navigationBarTitleText": "定位测试"
-  }
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于测试微信小程序定位接口的返回结果"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ]
 }
