@@ -40,15 +40,13 @@ Page({
           altitude: res.altitude != null ? res.altitude.toFixed(2) + ' 米' : '未知'
         };
 
-        // 检测是否是模拟位置（iOS支持，Android部分支持）
-        const isMock = res.latitude === 0 && res.longitude === 0 ? false :
-                       (Math.abs(res.accuracy) > 5000);
+        // wx.getLocation does not reliably expose an Android mock-location flag.\n        // Do not infer Mock status from reported accuracy.\n        console.log("微信 WGS84 完整返回值:", JSON.stringify(res));
 
         that.setData({
           wgs84: wgs84Data,
           mockInfo: {
-            isMock: isMock,
-            message: isMock ? '可能是模拟位置' : '正常定位'
+            isMock: false,
+            message: 'Mock状态未知（wx.getLocation未提供可靠标记）'
           }
         });
 
@@ -73,6 +71,7 @@ Page({
       type: 'gcj02',
       success(res) {
         console.log('=== GCJ02 坐标 ===');
+        console.log('微信 GCJ02 完整返回值:', JSON.stringify(res));
         console.log('纬度:', res.latitude);
         console.log('经度:', res.longitude);
 
@@ -83,8 +82,13 @@ Page({
           }
         });
 
-        // 获取地址
-        that.getAddress(res.latitude, res.longitude);
+        // wx.chooseLocation opens an interactive picker; it is NOT reverse geocoding.
+        // Avoid opening a location picker on every refresh.
+        that.setData({
+          address: { name: '未请求', address: '未配置独立反向地理编码服务' },
+          lastUpdate: new Date().toLocaleString('zh-CN'),
+          loading: false
+        });
       },
       fail(err) {
         console.error('GCJ02定位失败:', err);
